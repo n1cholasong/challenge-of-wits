@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -55,6 +56,24 @@ class Terrain:
         else:
             return "Coordinate does not exists!"
 
+    def euclidean_distance(self, x1, y1, x2, y2):
+        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+    def available_nodes(self, x, y):
+        return [self.valid_coordinate(x + dx, y + dy) for dx, dy in itertools.product([-1, 0 , 1], repeat=2) if dx, dy != ((0, 0) and None)]
+
+    def energy_cost(self, origin, destination):
+        x1, y1 = origin
+        x2, y2 = destination 
+        energy = self.eucliden_distance(x1, y1, x2, y2)
+        current_elevation = self.elevation(origin)
+        next_elevation = self.elevation(destination)
+        
+        if current_elevation < next_elevation:
+            energy *= 10
+
+        return energy
+                        
 
 class CSVGraphPlotter:
     def __init__(self, file_path):
