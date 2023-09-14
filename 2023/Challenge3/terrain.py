@@ -1,15 +1,23 @@
 import pandas as pd
 import numpy as np
+import math
 import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
 def eval_axis_sequence(offset, axis):
-    if offset >= 0:
-        return offset + axis
+    if -offset <= 0:
+        return abs(offset) + axis
     else:
-        return offset - axis
+        return abs(offset) - axis
+
+
+def euclidean_distance(point_a, point_b):
+    if len(point_a) != len(point_b):
+        raise ValueError("Both points must have the same number of dimensions!")
+
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(point_a, point_b)))
 
 
 class Terrain:
@@ -32,48 +40,39 @@ class Terrain:
             print(f"Error: {str(e)}")
 
     def valid_coordinate(self, x, y):
-        print(self.y_coordinate_offset)
-        print(abs(self.y_coordinate_offset))
-
-        x_sequence = eval_axis_sequence(self.x_coordinate_offset.__abs__(), x)
-        y_sequence = eval_axis_sequence(self.y_coordinate_offset.__abs__(), y)
+        x_sequence = eval_axis_sequence(self.x_coordinate_offset, x)
+        y_sequence = eval_axis_sequence(self.y_coordinate_offset, y)
 
         if x_sequence < 0:
             x_sequence = None
-            print("X-axis is out of bound!")
+            # print("X-axis is out of bound!")
         if y_sequence < 0:
             y_sequence = None
-            print("X-axis is out of bound!")
+            # print("X-axis is out of bound!")
 
-        print(f"Searching: {x_sequence, y_sequence}")
         return x_sequence, y_sequence
 
     def elevation(self, x, y):
-        x_axis, y_axis = self.valid_coordinate(x, y)
-
-        if (x_axis and y_axis) is not None:
-            return self.contour_matrix[y_axis, x_axis]
+        coord = self.valid_coordinate(x, y)
+        if all(points is not None for points in coord):
+            return self.contour_matrix[coord[1], coord[0]]
         else:
             return "Coordinate does not exists!"
 
-    def euclidean_distance(self, x1, y1, x2, y2):
-        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    def adjacent_nodes(self, x, y):
+        return [(a, b) for a, b in itertools.product(range(x - 1, x + 2), range(y - 1, y + 2)) if
+                (a, b) != (x, y) and all(points is not None for points in self.valid_coordinate(a, b))]
 
-    def available_nodes(self, x, y):
-        return [self.valid_coordinate(x + dx, y + dy) for dx, dy in itertools.product([-1, 0 , 1], repeat=2) if dx, dy != ((0, 0) and None)]
+    def energy_cost(self, point_a, point_b):
+        energy = euclidean_distance(point_a, point_b)
+        current_elevation = self.elevation(point_a[0], point_a[1])
+        next_elevation = self.elevation(point_b[0], point_b[1])
 
-    def energy_cost(self, origin, destination):
-        x1, y1 = origin
-        x2, y2 = destination 
-        energy = self.eucliden_distance(x1, y1, x2, y2)
-        current_elevation = self.elevation(origin)
-        next_elevation = self.elevation(destination)
-        
         if current_elevation < next_elevation:
             energy *= 10
 
         return energy
-                        
+
 
 class CSVGraphPlotter:
     def __init__(self, file_path):
@@ -88,7 +87,6 @@ class CSVGraphPlotter:
             x_coords = df.columns[1:-1].values  # Exclude the first column (header)
             y_coords = df.iloc[:, 0].values  # Exclude the first row (header)
             height_data = df.iloc[1:, 1:-1].values
-            print(height_data)
             # Create a meshgrid for X and Y coordinates
             X, Y = np.meshgrid(x_coords, y_coords)
 
@@ -108,7 +106,6 @@ class CSVGraphPlotter:
             plt.show()
         except Exception as e:
             print(f"Error plotting graph: {str(e)}")
-
 
 # if __name__ == "__main__":
 #     # Example usage of the CSVGraphPlotter class
