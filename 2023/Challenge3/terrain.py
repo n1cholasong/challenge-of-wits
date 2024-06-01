@@ -25,15 +25,15 @@ class Terrain:
         self.contour_map = contour_map
         self.x_coordinate_offset = 80
         self.y_coordinate_offset = -130
-        self.x_coordinate, self.y_coordinate, self.contour_matrix = self.analyze_terrain()
+        # self.x_coordinate, self.y_coordinate, self.contour_matrix = self.analyze_terrain()
 
     def analyze_terrain(self):
         try:
-            df = pd.read_csv(self.contour_map, header=None)
-
-            x_coordinate = df.iloc[0, 1:].values
-            y_coordinate = df.iloc[1:, 0].values
-            contour_matrix = df.iloc[1:, 1:].values
+            df = pd.read_csv(self.contour_map, index_col=0)
+            # print(df)
+            x_coordinate = df.columns.values.astype(float)
+            y_coordinate = df.index.values.astype(float)
+            contour_matrix = df.values.astype(float)
             print(f"Terrain Map Created!")
             return x_coordinate, y_coordinate, contour_matrix
         except Exception as e:
@@ -45,10 +45,10 @@ class Terrain:
 
         if x_sequence < 0:
             x_sequence = None
-            # print("X-axis is out of bound!")
+            print("X-axis is out of bound!")
         if y_sequence < 0:
             y_sequence = None
-            # print("X-axis is out of bound!")
+            print("X-axis is out of bound!")
 
         return x_sequence, y_sequence
 
@@ -74,43 +74,90 @@ class Terrain:
         return energy
 
 
+class CoordinateSystemConverter:
+    def __init__(self, x_offset: float, y_offset: float):
+        self.x_offset = x_offset
+        self.y_offset = y_offset
+
+    def data_to_matrix(self, x: float, y: float) -> tuple[float, float]:
+        """Convert data coordinates to matrix coordinates."""
+        matrix_x = abs(self.x_offset) + x if self.x_offset < 0 else x - abs(self.x_offset)
+        matrix_y = abs(self.y_offset) + y if self.y_offset < 0 else y - abs(self.y_offset)
+        return matrix_x.__abs__(), matrix_y.__abs__()
+
+    def matrix_to_data(self, matrix_x: float, matrix_y: float) -> tuple[float, float]:
+        """Convert matrix coordinates to data coordinates."""
+        x = matrix_x - abs(self.x_offset) if self.x_offset < 0 else matrix_x + abs(self.x_offset)
+        y = matrix_y - abs(self.y_offset) if self.y_offset < 0 else matrix_y + abs(self.y_offset)
+        return x, y
+
+
+class Node:
+    def __init__(self):
+        self.x = None
+        self.y = None
+        self.z = None
+        self.parent_x = None
+        self.parent_y = None
+        self.index_row = None
+        self.index_col = None
+        self.f = float("inf")  # Total cost of the cell (g + h)
+        self.g = float("inf")  # Cost from start to this cell
+        self.h = 0  # Heuristics cost from this cell to destination
+
+    def get_xyz(self):
+        return self.x, self.y, self.z
+
+    def get_index_coords(self):
+        return self.index_row, self.index_col
+
+
 class CSVGraphPlotter:
     def __init__(self, file_path):
         self.file_path = file_path
 
     def plot_graph(self):
         try:
-            # Read the CSV file
-            df = pd.read_csv(self.file_path)
 
+            df = pd.read_csv(self.file_path, index_col=0)
             # Extract the coordinates (X and Y) and height values
-            x_coords = df.columns[1:-1].values  # Exclude the first column (header)
-            y_coords = df.iloc[:, 0].values  # Exclude the first row (header)
-            height_data = df.iloc[1:, 1:-1].values
+            x_coords = df.columns.values.astype(float)  # Exclude the first column (header)
+            y_coords = df.index.values.astype(float)  # Exclude the first row (header)
+            height_data = df.values.astype(float)
             # Create a meshgrid for X and Y coordinates
             X, Y = np.meshgrid(x_coords, y_coords)
 
             # Create a 3D plot
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
+            fig = plt.figure(figsize=(12, 10))
+            graph = fig.add_subplot(111, projection='3d')
 
             # Plot the surface
-            ax.plot_surface(X, Y, height_data, cmap='viridis')
+            graph.plot_surface(X, Y, height_data, cmap='viridis')
 
             # Set axis labels
-            ax.set_xlabel('X Coordinate')
-            ax.set_ylabel('Y Coordinate')
-            ax.set_zlabel('Elevation')
+            graph.set_xlabel('X Coordinate')
+            graph.set_ylabel('Y Coordinate')
+            graph.set_zlabel('Elevation')
 
             # Show the plot
             plt.show()
+
+            # 2D Contour Map
+            # cp = plt.contour(X, Y, height_data, cmap='viridis')
+            # plt.colorbar(cp)
+            # plt.xlabel('X Coordinates')
+            # plt.ylabel('Y Coordinates')
+            # plt.title('Contour Map')
+            # plt.show()
+
         except Exception as e:
             print(f"Error plotting graph: {str(e)}")
 
-# if __name__ == "__main__":
-#     # Example usage of the CSVGraphPlotter class
-#     csv_file_path = "Elevation.csv"
-#     graph_plotter = CSVGraphPlotter(csv_file_path)
-#
-#     # Plot the 3D graph
-#     graph_plotter.plot_graph()
+
+if __name__ == "__main__":
+    # Example usage of the CSVGraphPlotter class
+    csv_file_path = "Elevation.csv"
+    graph_plotter = CSVGraphPlotter(csv_file_path)
+
+    # Plot the 3D graph
+    graph_plotter.plot_graph()
