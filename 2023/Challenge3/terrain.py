@@ -66,7 +66,7 @@ class Terrain:
         current_elevation = self.elevation(point_a[0], point_a[1])
         next_elevation = self.elevation(point_b[0], point_b[1])
 
-        if current_elevation < next_elevation:
+        if next_elevation > current_elevation:
             energy *= 10
 
         return energy
