@@ -14,47 +14,6 @@ class CSVGraphPlotter:
         self.src_coord = self.path_x[0], self.path_y[0], self.path_z[0]
         self.dest_coord = self.path_x[-1], self.path_y[-1], self.path_z[-1]
 
-    def plot_graph(self):
-        try:
-            df = pd.read_csv(self.file_path, index_col=0)
-
-            x_coords = df.columns.values.astype(float)
-            y_coords = df.index.values.astype(float)
-            height_data = df.values.astype(float)
-
-            X, Y = np.meshgrid(x_coords, y_coords)
-
-            # Create a 3D plot
-            plt.figure(figsize=(12, 10))
-            # graph = fig.add_subplot(111, projection='3d')
-
-            # # Plot the surface
-            # graph.plot_surface(X, Y, height_data, cmap='viridis')
-
-            # # Set axis labels
-            # graph.set_xlabel('X Coordinate')
-            # graph.set_ylabel('Y Coordinate')
-            # graph.set_zlabel('Elevation')
-
-            # # Show the plot
-            # plt.show()
-
-            # 2D Contour Map
-            cp = plt.contour(X, Y, height_data, cmap='viridis')
-            plt.colorbar(cp)
-
-            plt.scatter(self.x_coords, self.y_coords, color='red', label='Path')
-            plt.legend()
-
-            # Labels
-            plt.xlabel('X Coordinates')
-            plt.ylabel('Y Coordinates')
-            plt.title('Contour Map')
-            plt.show()
-
-        except Exception as e:
-            print(f"Error plotting graph: {str(e)}")
-
     def plot_2D_map(self):
         plt.figure(figsize=(10, 8))
 
