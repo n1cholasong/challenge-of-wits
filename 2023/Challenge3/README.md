@@ -19,11 +19,11 @@ This project is built using:
 
 # Getting Started
 
-## Prerequisites 
+### Prerequisites 
 
 - Python 3.x and above
 
-## Installation
+### Installation
 
 1. **Clone the repository**
     ```bash
@@ -42,7 +42,7 @@ This project is built using:
     pip install -r requirements.txt
     ```
 
-## Configuration
+### Configuration
 
 1. **Set environemnt variables**
     Copy the `.env.example` file to create a new `.env` file:
@@ -56,7 +56,7 @@ This project is built using:
     ELEVATION_CSV_PATH = "C:/path/to/elevation.csv" # for WindowsOS
     ```
 
-## Running the Project
+### Running the Project
 To run the project, execute the following command:
 ```bash
 python main.py
