@@ -2,6 +2,7 @@
 # Python Files
 \.idea
 \venv
+\astar-viewer
 *\__pycache__
 \.env
 
